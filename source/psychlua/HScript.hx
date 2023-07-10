@@ -6,13 +6,6 @@ import hscript.Interp;
 import hscript.Expr;
 #end
 
-#if LUA_ALLOWED
-import llua.Lua;
-import llua.LuaL;
-import llua.State;
-import llua.Convert;
-#end
-
 import haxe.Exception;
 
 import objects.Character;
@@ -36,8 +29,8 @@ class HScript
 		#if hscript
 		if(parent.hscript == null)
 		{
-			//trace('initializing haxe interp for: $scriptName');
-			parent.hscript = new HScript(parent); //TO DO: Fix issue with 2 scripts not being able to use the same variable names
+			trace('initializing haxe interp for: ${parent.scriptName}');
+			parent.hscript = new HScript(parent);
 		}
 		#end
 	}
@@ -91,11 +84,17 @@ class HScript
 		});
 
 		// For adding your own callbacks
+
+		// not very tested
+		interp.variables.set('createGlobalCallback', function(name:String, func:Dynamic) Lua_helper.add_callback(parentLua.lua, name, func));
+
+		// tested
 		interp.variables.set('createCallback', function(name:String, func:Dynamic, ?funk:FunkinLua = null)
 		{
 			if(funk == null) funk = parentLua;
-			Lua_helper.add_callback(funk.lua, name, func);
+			funk.addLocalCallback(name, func);
 		});
+
 		interp.variables.set('addHaxeLibrary', function(libName:String, ?libPackage:String = '') {
 			try {
 				var str:String = '';
@@ -123,7 +122,7 @@ class HScript
 		}
 		catch(e:Exception)
 		{
-			trace(e);
+			parentLua.luaTrace(parentLua.scriptName + ":" + parentLua.lastCalledFunction + " - " + e, false, false, FlxColor.RED);
 			return null;
 		}
 	}
@@ -137,7 +136,10 @@ class HScript
 			{
 				//trace('$funcToRun exists, executing...');
 				if(funcArgs == null) funcArgs = [];
-				return Reflect.callMethod(null, interp.variables.get(funcToRun), funcArgs);
+				try {
+					return Reflect.callMethod(null, interp.variables.get(funcToRun), funcArgs);
+				}
+				catch(e) parentLua.luaTrace(parentLua.scriptName + ":" + parentLua.lastCalledFunction + " - " + e, false, false, FlxColor.RED);
 			}
 		}
 		return null;
@@ -146,12 +148,10 @@ class HScript
 	#if LUA_ALLOWED
 	public static function implement(funk:FunkinLua)
 	{
-		var lua:State = funk.lua;
-		Lua_helper.add_callback(lua, "runHaxeCode", function(codeToRun:String, ?varsToBring:Any = null, ?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null) {
+		funk.addLocalCallback("runHaxeCode", function(codeToRun:String, ?varsToBring:Any = null, ?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null) {
 			var retVal:Dynamic = null;
-
 			#if hscript
-			HScript.initHaxeModule(funk);
+			initHaxeModule(funk);
 			try {
 				if(varsToBring != null)
 				{
@@ -174,7 +174,7 @@ class HScript
 			return retVal;
 		});
 		
-		Lua_helper.add_callback(lua, "runHaxeFunction", function(funcToRun:String, ?funcArgs:Array<Dynamic> = null) {
+		funk.addLocalCallback("runHaxeFunction", function(funcToRun:String, ?funcArgs:Array<Dynamic> = null) {
 			try {
 				return funk.hscript.executeFunction(funcToRun, funcArgs);
 			}
@@ -185,9 +185,9 @@ class HScript
 			}
 		});
 
-		Lua_helper.add_callback(lua, "addHaxeLibrary", function(libName:String, ?libPackage:String = '') {
+		funk.addLocalCallback("addHaxeLibrary", function(libName:String, ?libPackage:String = '') {
 			#if hscript
-			HScript.initHaxeModule(funk);
+			initHaxeModule(funk);
 			try {
 				var str:String = '';
 				if(libPackage.length > 0)
