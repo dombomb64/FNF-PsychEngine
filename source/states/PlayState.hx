@@ -1,5 +1,6 @@
 package states;
 
+import haxe.macro.Type.AbstractType;
 import backend.Achievements;
 import backend.Highscore;
 import backend.StageData;
@@ -1712,7 +1713,21 @@ class PlayState extends MusicBeatState
 				if(!cpuControlled) {
 					keysCheck();
 				} else if(boyfriend.animation.curAnim != null && boyfriend.holdTimer > Conductor.stepCrochet * (0.0011 / FlxG.sound.music.pitch) * boyfriend.singDuration && boyfriend.animation.curAnim.name.startsWith('sing') && !boyfriend.animation.curAnim.name.endsWith('miss')) {
-					boyfriend.dance();
+					var anim:String = boyfriend.animation.curAnim.name;
+					if (anim.endsWith('-loop'))
+						anim = anim.substr(0, anim.length - 5);
+
+					if (boyfriend.animOffsets.exists(anim + '-release')) {
+						boyfriend.playAnim(anim + '-release');
+						var oldCallback = boyfriend.animation.finishCallback;
+						var char = boyfriend;
+						char.animation.finishCallback = function(name:String) {
+							char.dance();
+							char.animation.finishCallback = oldCallback;
+						}
+					}
+					else
+						boyfriend.dance();
 					//boyfriend.animation.curAnim.finish();
 				}
 
@@ -2834,7 +2849,21 @@ class PlayState extends MusicBeatState
 			}
 			else if (boyfriend.animation.curAnim != null && boyfriend.holdTimer > Conductor.stepCrochet * (0.0011 / FlxG.sound.music.pitch) * boyfriend.singDuration && boyfriend.animation.curAnim.name.startsWith('sing') && !boyfriend.animation.curAnim.name.endsWith('miss'))
 			{
-				boyfriend.dance();
+				var anim:String = boyfriend.animation.curAnim.name;
+				if (anim.endsWith('-loop'))
+					anim = anim.substr(0, anim.length - 5);
+
+				if (boyfriend.animOffsets.exists(anim + '-release')) {
+					boyfriend.playAnim(anim + '-release');
+					var oldCallback = boyfriend.animation.finishCallback;
+					var char = boyfriend;
+					char.animation.finishCallback = function(name:String) {
+						char.dance();
+						char.animation.finishCallback = oldCallback;
+					}
+				}
+				else
+					boyfriend.dance();
 				//boyfriend.animation.curAnim.finish();
 			}
 		}
@@ -2942,7 +2971,26 @@ class PlayState extends MusicBeatState
 
 			if(char != null)
 			{
-				char.playAnim(animToPlay, true);
+				var hasHoldAnimation:Bool = false;
+				var isHoldAnimation:Bool = false;
+				var isReleaseAnimation:Bool = false;
+				if (char.animOffsets.exists(animToPlay + '-hold'))
+					hasHoldAnimation = true;
+				if (note.tail.length > 0 && hasHoldAnimation) {
+					animToPlay += '-hold';
+					isHoldAnimation = true;
+				}
+				if ((note.nextNote == null || (note.nextNote != null && !note.nextNote.isSustainNote)) && char.animOffsets.exists(animToPlay + '-release'))
+					isReleaseAnimation = true;
+
+				if (!(note.isSustainNote && hasHoldAnimation)) // Play unless the character should continue playing the hold animation
+					char.playAnim(animToPlay, true);
+				if (isReleaseAnimation) {
+					var anim:String = char.animation.curAnim.name;
+					if (anim.endsWith('-loop'))
+						anim = anim.substr(0, anim.length - 5);
+					char.playAnim(anim + '-release', false);
+				}
 				char.holdTimer = 0;
 			}
 		}
@@ -3013,7 +3061,7 @@ class PlayState extends MusicBeatState
 			health += note.hitHealth * healthGain;
 
 			if(!note.noAnimation) {
-				var animToPlay:String = singAnimations[Std.int(Math.abs(Math.min(singAnimations.length-1, note.noteData)))];
+				var animToPlay:String = singAnimations[Std.int(Math.abs(Math.min(singAnimations.length-1, note.noteData)))] + note.animSuffix;
 
 				var char:Character = boyfriend;
 				var animCheck:String = 'hey';
@@ -3025,7 +3073,26 @@ class PlayState extends MusicBeatState
 				
 				if(char != null)
 				{
-					char.playAnim(animToPlay + note.animSuffix, true);
+					var hasHoldAnimation:Bool = false;
+					var isHoldAnimation:Bool = false;
+					var isReleaseAnimation:Bool = false;
+					if (char.animOffsets.exists(animToPlay + '-hold'))
+						hasHoldAnimation = true;
+					if (note.tail.length > 0 && hasHoldAnimation) {
+						animToPlay += '-hold';
+						isHoldAnimation = true;
+					}
+					if ((note.nextNote == null || (note.nextNote != null && !note.nextNote.isSustainNote)) && char.animOffsets.exists(animToPlay + '-release'))
+						isReleaseAnimation = true;
+	
+					if (!(note.isSustainNote && hasHoldAnimation)) // Play unless the character should continue playing the hold animation
+						char.playAnim(animToPlay, true);
+					if (isReleaseAnimation) {
+						var anim:String = char.animation.curAnim.name;
+						if (anim.endsWith('-loop'))
+							anim = anim.substr(0, anim.length - 5);
+						//char.playAnim(anim + '-release', false);
+					}
 					char.holdTimer = 0;
 					
 					if(note.noteType == 'Hey!') {

@@ -218,6 +218,12 @@ class Character extends FlxSprite
 	{
 		if(!debugMode && animation.curAnim != null)
 		{
+			if (animation.curAnim.finished && animOffsets.exists(animation.curAnim.name + '-loop')) {
+				var special = specialAnim;
+				playAnim(animation.curAnim.name + '-loop');
+				specialAnim = special;
+			}
+
 			if(heyTimer > 0)
 			{
 				heyTimer -= elapsed * PlayState.instance.playbackRate;
@@ -267,9 +273,6 @@ class Character extends FlxSprite
 				dance();
 				holdTimer = 0;
 			}
-
-			if(animation.curAnim.finished && animation.getByName(animation.curAnim.name + '-loop') != null)
-				playAnim(animation.curAnim.name + '-loop');
 		}
 		super.update(elapsed);
 	}
