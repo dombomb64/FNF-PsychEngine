@@ -13,11 +13,12 @@ package states;
 import haxe.macro.Type.AbstractType;
 import backend.Achievements;
 import backend.Highscore;
+import backend.Mods;
+import backend.Rating;
+import backend.Section;
+import backend.Song;
 import backend.StageData;
 import backend.WeekData;
-import backend.Song;
-import backend.Section;
-import backend.Rating;
 
 import flixel.FlxBasic;
 import flixel.FlxObject;

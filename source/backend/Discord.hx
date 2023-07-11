@@ -4,6 +4,10 @@ import Sys.sleep;
 import discord_rpc.DiscordRpc;
 import lime.app.Application;
 
+#if MODS_ALLOWED
+import backend.Mods;
+#end
+
 class DiscordClient
 {
 	public static var isInitialized:Bool = false;
