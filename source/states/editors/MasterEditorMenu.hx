@@ -4,6 +4,7 @@ import backend.WeekData;
 
 #if MODS_ALLOWED
 import sys.FileSystem;
+import backend.Mods;
 #end
 
 import objects.Character;

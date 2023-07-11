@@ -7,6 +7,7 @@ import sys.FileSystem;
 import lime.utils.Assets;
 import openfl.utils.Assets as OpenFlAssets;
 import tjson.TJSON as Json;
+import backend.Mods;
 
 typedef WeekFile =
 {

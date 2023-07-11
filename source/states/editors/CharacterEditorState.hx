@@ -26,6 +26,7 @@ import objects.HealthBar;
 
 #if MODS_ALLOWED
 import sys.FileSystem;
+import backend.Mods;
 #end
 
 class CharacterEditorState extends MusicBeatState

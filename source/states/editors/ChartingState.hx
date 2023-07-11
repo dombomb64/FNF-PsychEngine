@@ -30,6 +30,7 @@ import openfl.utils.Assets as OpenFlAssets;
 import backend.Song;
 import backend.Section;
 import backend.StageData;
+import backend.Mods;
 
 import objects.Note;
 import objects.StrumNote;

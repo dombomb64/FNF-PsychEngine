@@ -4,6 +4,10 @@ import flixel.addons.ui.FlxUIState;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.FlxState;
 
+#if MODS_ALLOWED
+import backend.Mods;
+#end
+
 class MusicBeatState extends FlxUIState
 {
 	private var curSection:Int = 0;
