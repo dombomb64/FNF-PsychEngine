@@ -125,7 +125,8 @@ class PlayState extends MusicBeatState
 	public var dadGroup:FlxSpriteGroup;
 	public var gfGroup:FlxSpriteGroup;
 	public static var curStage:String = '';
-	public static var isPixelStage:Bool = false;
+	public static var isPixelStage:Bool = false; // Now just determines if things have anti-aliasing or not
+	public static var aesthetic(default, set):String = 'default';
 	public static var SONG:SwagSong = null;
 	public static var isStoryMode:Bool = false;
 	public static var storyWeek:Int = 0;
@@ -339,6 +340,16 @@ class PlayState extends MusicBeatState
 
 		defaultCamZoom = stageData.defaultZoom;
 		isPixelStage = !!stageData.isPixelStage;
+		if (stageData.isPixelStage) {
+			aesthetic = 'pixel';
+			isPixelStage = true;
+		}
+		else if (stageData.isPixelStage == false) {
+			aesthetic = 'default';
+			isPixelStage = false;
+		}
+		daPixelZoom = stageData.pixelZoom;
+
 		BF_X = stageData.boyfriend[0];
 		BF_Y = stageData.boyfriend[1];
 		GF_X = stageData.girlfriend[0];
@@ -378,9 +389,9 @@ class PlayState extends MusicBeatState
 			case 'tank': new states.stages.Tank(); //Week 7 - Ugh, Guns, Stress
 		}
 
-		if(isPixelStage) {
+		/*if(isPixelStage) {
 			introSoundsSuffix = '-pixel';
-		}
+		}*/
 
 		add(gfGroup);
 		add(dadGroup);
@@ -850,10 +861,10 @@ class PlayState extends MusicBeatState
 	{
 		var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
 		introAssets.set('default', ['ready', 'set', 'go']);
-		introAssets.set('pixel', ['pixelUI/ready-pixel', 'pixelUI/set-pixel', 'pixelUI/date-pixel']);
+		introAssets.set('aesthetic', [aesthetic + 'UI/ready-$aesthetic', aesthetic + 'UI/set-$aesthetic', aesthetic + 'UI/go-$aesthetic']);
 
 		var introAlts:Array<String> = introAssets.get('default');
-		if (isPixelStage) introAlts = introAssets.get('pixel');
+		if (aesthetic != 'default') introAlts = introAssets.get('aesthetic');
 		
 		for (asset in introAlts)
 			Paths.image(asset);
@@ -918,14 +929,13 @@ class PlayState extends MusicBeatState
 
 				var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
 				introAssets.set('default', ['ready', 'set', 'go']);
-				introAssets.set('pixel', ['pixelUI/ready-pixel', 'pixelUI/set-pixel', 'pixelUI/date-pixel']);
-
+				introAssets.set('aesthetic', [aesthetic + 'UI/ready-$aesthetic', aesthetic + 'UI/set-$aesthetic', aesthetic + 'UI/go-$aesthetic']);
+		
 				var introAlts:Array<String> = introAssets.get('default');
 				var antialias:Bool = ClientPrefs.data.antialiasing;
-				if(isPixelStage) {
-					introAlts = introAssets.get('pixel');
+				if (aesthetic != 'default') introAlts = introAssets.get('aesthetic');
+				if (isPixelStage)
 					antialias = false;
-				}
 
 				var tick:Countdown = THREE;
 				switch (swagCounter)
@@ -1188,8 +1198,7 @@ class PlayState extends MusicBeatState
 				var daNoteData:Int = Std.int(songNotes[1] % 4);
 				var gottaHitNote:Bool = section.mustHitSection;
 
-				if (songNotes[1] > 3)
-				{
+				if (songNotes[1] > 3) {
 					gottaHitNote = !section.mustHitSection;
 				}
 
@@ -1204,7 +1213,7 @@ class PlayState extends MusicBeatState
 				swagNote.sustainLength = songNotes[2];
 				swagNote.gfNote = (section.gfSection && (songNotes[1]<4));
 				swagNote.noteType = songNotes[3];
-				if(!Std.isOfType(songNotes[3], String)) swagNote.noteType = ChartingState.noteTypeList[songNotes[3]]; //Backward compatibility + compatibility with Week 7 charts
+				if (!Std.isOfType(songNotes[3], String)) swagNote.noteType = ChartingState.noteTypeList[songNotes[3]]; //Backward compatibility + compatibility with Week 7 charts
 
 				swagNote.scrollFactor.set();
 
@@ -1214,9 +1223,8 @@ class PlayState extends MusicBeatState
 				unspawnNotes.push(swagNote);
 
 				var floorSus:Int = Math.floor(susLength);
-				if(floorSus > 0) {
-					for (susNote in 0...floorSus+1)
-					{
+				if (floorSus > 0) {
+					for (susNote in 0...floorSus+1) {
 						oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
 
 						var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet / FlxMath.roundDecimal(songSpeed, 2)), daNoteData, oldNote, true);
@@ -1228,33 +1236,27 @@ class PlayState extends MusicBeatState
 						sustainNote.parent = swagNote;
 						unspawnNotes.push(sustainNote);
 						
-						if(!PlayState.isPixelStage && oldNote.isSustainNote)
-						{
+						if (!PlayState.isPixelStage && oldNote.isSustainNote) {
 							oldNote.scale.y *= Note.SUSTAIN_SIZE / oldNote.frameHeight;
 							oldNote.updateHitbox();
 						}
 
 						if (sustainNote.mustPress) sustainNote.x += FlxG.width / 2; // general offset
-						else if(ClientPrefs.data.middleScroll)
-						{
+						else if (ClientPrefs.data.middleScroll) {
 							sustainNote.x += 310;
-							if(daNoteData > 1) //Up and Right
-							{
+							if(daNoteData > 1) { // Up and Right
 								sustainNote.x += FlxG.width / 2 + 25;
 							}
 						}
 					}
 				}
 
-				if (swagNote.mustPress)
-				{
+				if (swagNote.mustPress) {
 					swagNote.x += FlxG.width / 2; // general offset
 				}
-				else if(ClientPrefs.data.middleScroll)
-				{
+				else if (ClientPrefs.data.middleScroll) {
 					swagNote.x += 310;
-					if(daNoteData > 1) //Up and Right
-					{
+					if(daNoteData > 1) { // Up and Right
 						swagNote.x += FlxG.width / 2 + 25;
 					}
 				}
@@ -2286,19 +2288,18 @@ class PlayState extends MusicBeatState
 
 	private function cachePopUpScore()
 	{
-		var pixelShitPart1:String = '';
-		var pixelShitPart2:String = '';
-		if (isPixelStage)
-		{
-			pixelShitPart1 = 'pixelUI/';
-			pixelShitPart2 = '-pixel';
+		var aestheticShitPart1:String = '';
+		var aestheticShitPart2:String = '';
+		if (aesthetic != 'default') {
+			aestheticShitPart1 = aesthetic + 'UI/';
+			aestheticShitPart2 = '-$aesthetic';
 		}
 
 		for (rating in ratingsData)
-			Paths.image(pixelShitPart1 + rating.image + pixelShitPart2);
+			Paths.image(aestheticShitPart1 + rating.image + aestheticShitPart2);
 
 		for (i in 0...10)
-			Paths.image(pixelShitPart1 + 'num' + i + pixelShitPart2);
+			Paths.image(aestheticShitPart1 + 'num' + i + aestheticShitPart2);
 	}
 
 	private function popUpScore(note:Note = null):Void
@@ -2341,18 +2342,18 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		var pixelShitPart1:String = "";
-		var pixelShitPart2:String = '';
+		var aestheticShitPart1:String = '';
+		var aestheticShitPart2:String = '';
 		var antialias:Bool = ClientPrefs.data.antialiasing;
 
-		if (isPixelStage)
-		{
-			pixelShitPart1 = 'pixelUI/';
-			pixelShitPart2 = '-pixel';
-			antialias = false;
+		if (aesthetic != 'default') {
+			aestheticShitPart1 = aesthetic + 'UI/';
+			aestheticShitPart2 = '-$aesthetic';
 		}
+		if (isPixelStage)
+			antialias = false;
 
-		rating.loadGraphic(Paths.image(pixelShitPart1 + daRating.image + pixelShitPart2));
+		rating.loadGraphic(Paths.image(aestheticShitPart1 + daRating.image + aestheticShitPart2));
 		rating.cameras = [camHUD];
 		rating.screenCenter();
 		rating.x = coolText.x - 40;
@@ -2365,7 +2366,7 @@ class PlayState extends MusicBeatState
 		rating.y -= ClientPrefs.data.comboOffset[1];
 		rating.antialiasing = antialias;
 
-		var comboSpr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(pixelShitPart1 + 'combo' + pixelShitPart2));
+		var comboSpr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(aestheticShitPart1 + 'combo' + aestheticShitPart2));
 		comboSpr.cameras = [camHUD];
 		comboSpr.screenCenter();
 		comboSpr.x = coolText.x;
@@ -2430,7 +2431,7 @@ class PlayState extends MusicBeatState
 		}
 		for (i in seperatedScore)
 		{
-			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(pixelShitPart1 + 'num' + Std.int(i) + pixelShitPart2));
+			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(aestheticShitPart1 + 'num' + Std.int(i) + aestheticShitPart2));
 			numScore.cameras = [camHUD];
 			numScore.screenCenter();
 			numScore.x = coolText.x + (43 * daLoop) - 90 + ClientPrefs.data.comboOffset[2];
@@ -3190,4 +3191,17 @@ class PlayState extends MusicBeatState
 		return null;
 	}
 	#end
+
+	static function set_aesthetic(value:String):String
+	{
+		if (instance != null) {
+			if (value != 'default') {
+				instance.introSoundsSuffix = '-$value';
+			}
+			else {
+				instance.introSoundsSuffix = '';
+			}
+		}
+		return aesthetic = value;
+	}
 }

@@ -131,7 +131,7 @@ class Note extends FlxSprite
 	public function defaultRGB()
 	{
 		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData];
+		if(PlayState.aesthetic == 'pixel') arr = ClientPrefs.data.arrowRGBPixel[noteData];
 
 		if (noteData > -1 && noteData <= arr.length)
 		{
@@ -276,7 +276,7 @@ class Note extends FlxSprite
 			var newRGB:RGBPalette = new RGBPalette();
 			globalRgbShaders[noteData] = newRGB;
 
-			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGB[noteData] : ClientPrefs.data.arrowRGBPixel[noteData];
+			var arr:Array<FlxColor> = (PlayState.aesthetic != 'pixel') ? ClientPrefs.data.arrowRGB[noteData] : ClientPrefs.data.arrowRGBPixel[noteData];
 			if (noteData > -1 && noteData <= arr.length)
 			{
 				newRGB.r = arr[0];
@@ -310,7 +310,7 @@ class Note extends FlxSprite
 		var lastScaleY:Float = scale.y;
 		var skinPostfix:String = getNoteSkinPostfix();
 		var customSkin:String = skin + skinPostfix;
-		var path:String = PlayState.isPixelStage ? 'pixelUI/' : '';
+		var path:String = PlayState.aesthetic != 'default' ? PlayState.aesthetic + 'UI/' : '';
 		if(customSkin == _lastValidChecked || Paths.fileExists('images/' + path + customSkin + '.png', IMAGE))
 		{
 			skin = customSkin;
@@ -320,16 +320,16 @@ class Note extends FlxSprite
 
 		if(PlayState.isPixelStage) {
 			if(isSustainNote) {
-				loadGraphic(Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix));
+				loadGraphic(Paths.image(PlayState.aesthetic + 'UI/' + skinPixel + 'ENDS' + skinPostfix));
 				width /= 4;
 				height /= 2;
 				originalHeight = height;
-				loadGraphic(Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix), true, Math.floor(width), Math.floor(height));
+				loadGraphic(Paths.image(PlayState.aesthetic + 'UI/' + skinPixel + 'ENDS' + skinPostfix), true, Math.floor(width), Math.floor(height));
 			} else {
-				loadGraphic(Paths.image('pixelUI/' + skinPixel + skinPostfix));
+				loadGraphic(Paths.image(PlayState.aesthetic + 'UI/' + skinPixel + skinPostfix));
 				width /= 4;
 				height /= 5;
-				loadGraphic(Paths.image('pixelUI/' + skinPixel + skinPostfix), true, Math.floor(width), Math.floor(height));
+				loadGraphic(Paths.image(PlayState.aesthetic + 'UI/' + skinPixel + skinPostfix), true, Math.floor(width), Math.floor(height));
 			}
 			setGraphicSize(Std.int(width * PlayState.daPixelZoom));
 			loadPixelNoteAnims();
