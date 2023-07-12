@@ -18,7 +18,8 @@ class NotesSubState extends MusicBeatSubstate
 	var onModeColumn:Bool = true;
 	var curSelectedMode:Int = 0;
 	var curSelectedNote:Int = 0;
-	var onPixel:Bool = false;
+	var curSelectedAesthetic:Int = 0;
+	var aestheticArray:Array<String> = ['default', 'pixel'];
 	var dataArray:Array<Array<FlxColor>>;
 
 	var hexTypeLine:FlxSprite;
@@ -153,7 +154,8 @@ class NotesSubState extends MusicBeatSubstate
 
 		if(FlxG.keys.justPressed.CONTROL)
 		{
-			onPixel = !onPixel;
+			curSelectedAesthetic++;
+			if (curSelectedAesthetic >= aestheticArray.length) curSelectedAesthetic = 0;
 			spawnNotes();
 			updateNotes(true);
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
@@ -316,7 +318,8 @@ class NotesSubState extends MusicBeatSubstate
 			}
 			else if (FlxG.mouse.overlaps(skinNote))
 			{
-				onPixel = !onPixel;
+				curSelectedAesthetic++;
+				if (curSelectedAesthetic >= aestheticArray.length) curSelectedAesthetic = 0;
 				spawnNotes();
 				updateNotes(true);
 				FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
@@ -378,8 +381,7 @@ class NotesSubState extends MusicBeatSubstate
 				for (i in 0...3)
 				{
 					var strumRGB:RGBShaderReference = myNotes.members[curSelectedNote].rgbShader;
-					var color:FlxColor = !onPixel ? ClientPrefs.defaultData.arrowRGB[curSelectedNote][i] :
-													ClientPrefs.defaultData.arrowRGBPixel[curSelectedNote][i];
+					var color:FlxColor = ClientPrefs.defaultData.arrowRGBMap.get(aestheticArray[curSelectedAesthetic])[curSelectedNote][i];
 					switch(i)
 					{
 						case 0:
@@ -392,7 +394,7 @@ class NotesSubState extends MusicBeatSubstate
 					dataArray[curSelectedNote][i] = color;
 				}
 			}
-			setShaderColor(!onPixel ? ClientPrefs.defaultData.arrowRGB[curSelectedNote][curSelectedMode] : ClientPrefs.defaultData.arrowRGBPixel[curSelectedNote][curSelectedMode]);
+			setShaderColor(ClientPrefs.defaultData.arrowRGBMap.get(aestheticArray[curSelectedAesthetic])[curSelectedNote][i]);
 			FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
 			updateColors();
 		}
@@ -462,8 +464,8 @@ class NotesSubState extends MusicBeatSubstate
 	var bigNote:Note;
 	public function spawnNotes()
 	{
-		dataArray = !onPixel ? ClientPrefs.data.arrowRGB : ClientPrefs.data.arrowRGBPixel;
-		PlayState.isPixelStage = onPixel;
+		dataArray = ClientPrefs.data.arrowRGBMap.get(aestheticArray[curSelectedAesthetic])[curSelectedNote][i];
+		PlayState.isPixelStage = (curSelectedAesthetic == 1);
 
 		// clear groups
 		modeNotes.forEachAlive(function(note:FlxSprite) {
@@ -489,25 +491,27 @@ class NotesSubState extends MusicBeatSubstate
 		}
 
 		// respawn stuff
-		var res:Int = onPixel ? 160 : 17;
-		skinNote = new FlxSprite(48, 24).loadGraphic(Paths.image('noteColorMenu/' + (onPixel ? 'note' : 'notePixel')), true, res, res);
+		var res:Int = PlayState.isPixelStage ? 160 : 17;
+		var noteGraphic:String = 'note';
+		if (aestheticArray[curSelectedAesthetic] != 'default') noteGraphic += '-' + aestheticArray[curSelectedAesthetic];
+		skinNote = new FlxSprite(48, 24).loadGraphic(Paths.image('noteColorMenu/' + noteGraphic), true, res, res);
 		skinNote.setGraphicSize(68);
 		skinNote.updateHitbox();
 		skinNote.animation.add('anim', [0], 24, true);
 		skinNote.animation.play('anim', true);
-		if(!onPixel) skinNote.antialiasing = false;
+		if(!PlayState.isPixelStage) skinNote.antialiasing = false;
 		add(skinNote);
 
-		var res:Int = !onPixel ? 160 : 17;
+		var res:Int = !PlayState.isPixelStage ? 160 : 17;
 		for (i in 0...3)
 		{
-			var newNote:FlxSprite = new FlxSprite(230 + (100 * i), 100).loadGraphic(Paths.image('noteColorMenu/' + (!onPixel ? 'note' : 'notePixel')), true, res, res);
+			var newNote:FlxSprite = new FlxSprite(230 + (100 * i), 100).loadGraphic(Paths.image('noteColorMenu/' + noteGraphic), true, res, res);
 			newNote.setGraphicSize(85);
 			newNote.updateHitbox();
 			newNote.animation.add('anim', [i], 24, true);
 			newNote.animation.play('anim', true);
 			newNote.ID = i;
-			if(onPixel) newNote.antialiasing = false;
+			if (PlayState.isPixelStage) newNote.antialiasing = false;
 			modeNotes.add(newNote);
 		}
 
@@ -530,7 +534,7 @@ class NotesSubState extends MusicBeatSubstate
 		bigNote.shader = Note.globalRgbShaders[curSelectedNote].shader;
 		for (i in 0...Note.colArray.length)
 		{
-			if(!onPixel) bigNote.animation.addByPrefix('note$i', Note.colArray[i] + '0', 24, true);
+			if (!PlayState.isPixelStage) bigNote.animation.addByPrefix('note$i', Note.colArray[i] + '0', 24, true);
 			else bigNote.animation.add('note$i', [i + 4], 24, true);
 		}
 		insert(members.indexOf(myNotes) + 1, bigNote);

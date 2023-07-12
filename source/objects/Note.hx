@@ -130,8 +130,9 @@ class Note extends FlxSprite
 
 	public function defaultRGB()
 	{
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData];
-		if(PlayState.aesthetic == 'pixel') arr = ClientPrefs.data.arrowRGBPixel[noteData];
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBMap.get('default')[noteData];
+		if (PlayState.aesthetic == 'pixel') arr = ClientPrefs.data.arrowRGBMap.get('pixel')[noteData];
+		//if (PlayState.aesthetic == 'newAesthetic') arr = ClientPrefs.data.arrowRGBMap.get('newAesthetic')[noteData];
 
 		if (noteData > -1 && noteData <= arr.length)
 		{
@@ -276,7 +277,10 @@ class Note extends FlxSprite
 			var newRGB:RGBPalette = new RGBPalette();
 			globalRgbShaders[noteData] = newRGB;
 
-			var arr:Array<FlxColor> = (PlayState.aesthetic != 'pixel') ? ClientPrefs.data.arrowRGB[noteData] : ClientPrefs.data.arrowRGBPixel[noteData];
+			var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBMap.get('default')[noteData];
+			if (PlayState.aesthetic == 'pixel') arr = ClientPrefs.data.arrowRGBMap.get('pixel')[noteData];
+			//if (PlayState.aesthetic == 'newAesthetic') arr = ClientPrefs.data.arrowRGBMap.get('newAesthetic')[noteData];
+			
 			if (noteData > -1 && noteData <= arr.length)
 			{
 				newRGB.r = arr[0];
