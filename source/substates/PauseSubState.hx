@@ -238,6 +238,8 @@ class PauseSubState extends MusicBeatSubstate
 					}
 				case 'End Song':
 					close();
+					PlayState.instance.notes.clear();
+					PlayState.instance.unspawnNotes = [];
 					PlayState.instance.finishSong(true);
 				case 'Toggle Botplay':
 					PlayState.instance.cpuControlled = !PlayState.instance.cpuControlled;
@@ -296,13 +298,10 @@ class PauseSubState extends MusicBeatSubstate
 
 		if(noTrans)
 		{
+			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
-			FlxG.resetState();
 		}
-		else
-		{
-			MusicBeatState.resetState();
-		}
+		MusicBeatState.resetState();
 	}
 
 	override function destroy()
