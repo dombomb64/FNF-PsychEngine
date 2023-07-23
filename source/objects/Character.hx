@@ -266,12 +266,27 @@ class Character extends FlxSprite
 
 			if (animation.curAnim.name.startsWith('sing'))
 				holdTimer += elapsed;
-			else if(isPlayer)
+			else if (isPlayer)
 				holdTimer = 0;
 
 			if (!isPlayer && holdTimer >= Conductor.stepCrochet * (0.0011 / (FlxG.sound.music != null ? FlxG.sound.music.pitch : 1)) * singDuration)
 			{
-				dance();
+				var anim:String = animation.curAnim.name;
+				if (anim.endsWith('-loop'))
+					anim = anim.substr(0, anim.length - 5);
+
+				if (animOffsets.exists(anim + '-release')) {
+					playAnim(anim + '-release');
+					var oldCallback = animation.finishCallback;
+					animation.finishCallback = function(name:String) {
+						if (animation.curAnim != null && animation.curAnim.name == anim + '-release')
+							dance();
+						animation.finishCallback = oldCallback;
+					}
+				}
+				else
+					dance();
+
 				holdTimer = 0;
 			}
 		}
