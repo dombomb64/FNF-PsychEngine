@@ -8,7 +8,7 @@ import flixel.FlxBasic;
 import openfl.display.BitmapData;
 import flash.geom.Rectangle;
 import lime.utils.Assets;
-import haxe.Json;
+import tjson.TJSON as Json;
 
 #if sys
 import sys.io.File;
@@ -65,6 +65,7 @@ class ModsMenuState extends MusicBeatState
 		#end
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		bg.antialiasing = ClientPrefs.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
 
@@ -289,8 +290,7 @@ class ModsMenuState extends MusicBeatState
 
 			newMod.alphabet = new Alphabet(0, 0, mods[i].name, true);
 			var scale:Float = Math.min(840 / newMod.alphabet.width, 1);
-			newMod.alphabet.scaleX = scale;
-			newMod.alphabet.scaleY = scale;
+			newMod.alphabet.setScale(scale);
 			newMod.alphabet.y = i * 150;
 			newMod.alphabet.x = 310;
 			add(newMod.alphabet);

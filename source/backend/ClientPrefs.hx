@@ -13,11 +13,14 @@ class SaveVariables {
 	public var opponentStrums:Bool = true;
 	public var showFPS:Bool = true;
 	public var flashing:Bool = true;
+	public var autoPause:Bool = true;
 	public var antialiasing:Bool = true;
 	public var noteSkin:String = 'Default';
 	public var splashSkin:String = 'Psych';
+	public var splashAlpha:Float = 0.6;
 	public var lowQuality:Bool = false;
 	public var shaders:Bool = true;
+	public var cacheOnGPU:Bool = false; //From Stilic
 	public var framerate:Int = 60;
 	public var cursing:Bool = true;
 	public var violence:Bool = true;
@@ -194,6 +197,10 @@ class ClientPrefs {
 			Main.fpsVar.visible = data.showFPS;
 		}
 
+		#if !html5
+		FlxG.autoPause = ClientPrefs.data.autoPause;
+		#end
+
 		if(data.framerate > FlxG.drawFramerate) {
 			FlxG.updateFramerate = data.framerate;
 			FlxG.drawFramerate = data.framerate;
@@ -213,8 +220,6 @@ class ClientPrefs {
 			FlxG.sound.volume = FlxG.save.data.volume;
 		if (FlxG.save.data.mute != null)
 			FlxG.sound.muted = FlxG.save.data.mute;
-
-		FlxSprite.defaultAntialiasing = data.antialiasing;
 
 		#if desktop
 		DiscordClient.check();
@@ -241,7 +246,8 @@ class ClientPrefs {
 		}
 	}
 
-	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic {
+	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic = null, ?customDefaultValue:Bool = false):Dynamic {
+		if(!customDefaultValue) defaultValue = defaultData.gameplaySettings.get(name);
 		return /*PlayState.isStoryMode ? defaultValue : */ (data.gameplaySettings.exists(name) ? data.gameplaySettings.get(name) : defaultValue);
 	}
 

@@ -5,7 +5,7 @@ import sys.io.File;
 import sys.FileSystem;
 #end
 import openfl.utils.Assets;
-import haxe.Json;
+import tjson.TJSON as Json;
 
 typedef MenuCharacterFile = {
 	var image:String;
@@ -26,6 +26,7 @@ class MenuCharacter extends FlxSprite
 	{
 		super(x);
 
+		antialiasing = ClientPrefs.data.antialiasing;
 		changeCharacter(character);
 	}
 

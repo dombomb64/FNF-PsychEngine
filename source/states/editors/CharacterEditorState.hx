@@ -18,7 +18,7 @@ import openfl.net.FileReference;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import lime.system.Clipboard;
-import haxe.Json;
+import tjson.TJSON as Json;
 
 import objects.Character;
 import objects.HealthIcon;
@@ -104,7 +104,7 @@ class CharacterEditorState extends MusicBeatState
 		add(healthBar);
 		healthBar.cameras = [camHUD];
 
-		leHealthIcon = new HealthIcon(char.healthIcon, false);
+		leHealthIcon = new HealthIcon(char.healthIcon, false, false);
 		leHealthIcon.y = FlxG.height - 150;
 		add(leHealthIcon);
 		leHealthIcon.cameras = [camHUD];
@@ -738,7 +738,7 @@ class CharacterEditorState extends MusicBeatState
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
 			if(sender == healthIconInputText) {
-				leHealthIcon.changeIcon(healthIconInputText.text);
+				leHealthIcon.changeIcon(healthIconInputText.text, false);
 				char.healthIcon = healthIconInputText.text;
 				updatePresence();
 			}
@@ -966,7 +966,7 @@ class CharacterEditorState extends MusicBeatState
 			flipXCheckBox.checked = char.originalFlipX;
 			noAntialiasingCheckBox.checked = char.noAntialiasing;
 			resetHealthBarColor();
-			leHealthIcon.changeIcon(healthIconInputText.text);
+			leHealthIcon.changeIcon(healthIconInputText.text, false);
 			positionXStepper.value = char.positionArray[0];
 			positionYStepper.value = char.positionArray[1];
 			positionCameraXStepper.value = char.cameraPosition[0];
@@ -1262,7 +1262,7 @@ class CharacterEditorState extends MusicBeatState
 			"healthbar_colors": char.healthColorArray
 		};
 
-		var data:String = Json.stringify(json, "\t");
+		var data:String = haxe.Json.stringify(json, "\t");
 
 		if (data.length > 0)
 		{

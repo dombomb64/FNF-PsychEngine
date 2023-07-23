@@ -6,13 +6,14 @@ import sys.FileSystem;
 #else
 import openfl.utils.Assets;
 #end
-import haxe.Json;
+import tjson.TJSON as Json;
 import backend.Song;
 
 typedef StageFile = {
 	var directory:String;
 	var defaultZoom:Float;
 	var isPixelStage:Bool;
+	var stageUI:String;
 
 	var boyfriend:Array<Dynamic>;
 	var girlfriend:Array<Dynamic>;
@@ -32,6 +33,7 @@ class StageData {
 			directory: "",
 			defaultZoom: 0.9,
 			isPixelStage: false,
+			stageUI: "normal",
 
 			boyfriend: [770, 100],
 			girlfriend: [400, 130],

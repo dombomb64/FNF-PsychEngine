@@ -1,4 +1,4 @@
-package states.stages;
+package backend;
 
 import flixel.FlxBasic;
 import flixel.FlxObject;
@@ -47,7 +47,7 @@ class BaseStage extends FlxBasic
 
 	public function new()
 	{
-		this.game = cast FlxG.state;
+		this.game = MusicBeatState.getState();
 		if(this.game == null)
 		{
 			FlxG.log.warn('Invalid state for the stage added!');
@@ -84,6 +84,7 @@ class BaseStage extends FlxBasic
 	// Events
 	public function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {}
 	public function eventPushed(event:EventNote) {}
+	public function eventPushedUnique(event:EventNote) {}
 
 	// Things to replace FlxGroup stuff and inject sprites directly into the state
 	function add(object:FlxBasic) game.add(object);
@@ -124,17 +125,15 @@ class BaseStage extends FlxBasic
 	{
 		if(onPlayState)
 			PlayState.instance.precacheList.set(key, type);
-		else
+
+		switch(type)
 		{
-			switch(type)
-			{
-				case 'image':
-					Paths.image(key);
-				case 'sound':
-					Paths.sound(key);
-				case 'music':
-					Paths.music(key);
-			}
+			case 'image':
+				Paths.image(key);
+			case 'sound':
+				Paths.sound(key);
+			case 'music':
+				Paths.music(key);
 		}
 	}
 

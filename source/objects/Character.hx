@@ -10,7 +10,7 @@ import sys.FileSystem;
 #end
 import openfl.utils.AssetType;
 import openfl.utils.Assets;
-import haxe.Json;
+import tjson.TJSON as Json;
 
 import backend.Song;
 import backend.Section;
@@ -135,22 +135,23 @@ class Character extends FlxSprite
 					updateHitbox();
 				}
 
+				// positioning
 				positionArray = json.position;
 				cameraPosition = json.camera_position;
 
+				// data
 				healthIcon = json.healthicon;
 				singDuration = json.sing_duration;
-				flipX = !!json.flip_x;
-				if(json.no_antialiasing) {
-					antialiasing = false;
-					noAntialiasing = true;
-				}
+				flipX = (json.flip_x == true);
 
 				if(json.healthbar_colors != null && json.healthbar_colors.length > 2)
 					healthColorArray = json.healthbar_colors;
 
-				if(ClientPrefs.data.antialiasing) antialiasing = !noAntialiasing;
+				// antialiasing
+				noAntialiasing = (json.no_antialiasing == true);
+				antialiasing = ClientPrefs.data.antialiasing ? !noAntialiasing : false;
 
+				// animations
 				animationsArray = json.animations;
 				if(animationsArray != null && animationsArray.length > 0) {
 					for (anim in animationsArray) {

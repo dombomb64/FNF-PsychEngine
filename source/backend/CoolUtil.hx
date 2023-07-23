@@ -39,7 +39,7 @@ class CoolUtil
 	{
 		var hideChars = ~/[\t\n\r]/;
 		var color:String = hideChars.split(color).join('').trim();
-		if(color.startsWith('0x')) color = color.substr(4);
+		if(color.startsWith('0x')) color = color.substring(color.length - 6);
 
 		var colorNum:Null<FlxColor> = FlxColor.fromString(color);
 		if(colorNum == null) colorNum = FlxColor.fromString('#$color');
@@ -55,6 +55,19 @@ class CoolUtil
 			daList[i] = daList[i].trim();
 
 		return daList;
+	}
+
+	public static function floorDecimal(value:Float, decimals:Int):Float
+	{
+		if(decimals < 1)
+			return Math.floor(value);
+
+		var tempMult:Float = 1;
+		for (i in 0...decimals)
+			tempMult *= 10;
+
+		var newValue:Float = Math.floor(value * tempMult);
+		return newValue / tempMult;
 	}
 	
 	inline public static function dominantColor(sprite:flixel.FlxSprite):Int
@@ -91,15 +104,6 @@ class CoolUtil
 		for (i in min...max) dumbArray.push(i);
 
 		return dumbArray;
-	}
-
-	//uhhhh does this even work at all? i'm starting to doubt
-	inline public static function precacheSound(sound:String, ?library:String = null):Void {
-		Paths.sound(sound, library);
-	}
-
-	inline public static function precacheMusic(sound:String, ?library:String = null):Void {
-		Paths.music(sound, library);
 	}
 
 	inline public static function browserLoad(site:String) {

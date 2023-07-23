@@ -1,6 +1,6 @@
 package cutscenes;
 
-import haxe.Json;
+import tjson.TJSON as Json;
 
 #if sys
 import sys.FileSystem;
@@ -51,6 +51,7 @@ class DialogueCharacter extends FlxSprite
 		frames = Paths.getSparrowAtlas('dialogue/' + jsonFile.image);
 		reloadAnimations();
 
+		antialiasing = ClientPrefs.data.antialiasing;
 		if(jsonFile.no_antialiasing == true) antialiasing = false;
 	}
 
