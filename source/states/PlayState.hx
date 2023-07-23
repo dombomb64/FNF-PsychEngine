@@ -636,7 +636,7 @@ class PlayState extends MusicBeatState
 			for (note in unspawnNotes) note.resizeByRatio(ratio);
 		}
 		songSpeed = value;
-		noteKillOffset = Math.max(Conductor.stepCrochet, 350 / songSpeed);
+		noteKillOffset = Math.max(Conductor.stepCrochet, 350 / songSpeed * playbackRate);
 		return value;
 	}
 
@@ -1241,12 +1241,18 @@ class PlayState extends MusicBeatState
 						{
 							if(oldNote.isSustainNote)
 							{
-								oldNote.scale.y *= Note.SUSTAIN_SIZE / oldNote.frameHeight;
+								oldNote.scale.y *= Note.SUSTAIN_SIZE / oldNote.frameHeight ;
+								oldNote.scale.y /= playbackRate;
 								oldNote.updateHitbox();
 							}
 
 							if(ClientPrefs.data.downScroll)
 								sustainNote.correctionOffset = 0;
+						}
+						else if(oldNote.isSustainNote)
+						{
+							oldNote.scale.y /= playbackRate;
+							oldNote.updateHitbox();
 						}
 
 						if (sustainNote.mustPress) sustainNote.x += FlxG.width / 2; // general offset
@@ -1612,7 +1618,7 @@ class PlayState extends MusicBeatState
 
 		if (unspawnNotes[0] != null)
 		{
-			var time:Float = spawnTime;
+			var time:Float = spawnTime * playbackRate;
 			if(songSpeed < 1) time /= songSpeed;
 			if(unspawnNotes[0].multSpeed < 1) time /= unspawnNotes[0].multSpeed;
 
@@ -1664,7 +1670,7 @@ class PlayState extends MusicBeatState
 							if(!daNote.mustPress) strumGroup = opponentStrums;
 
 							var strum:StrumNote = strumGroup.members[daNote.noteData];
-							daNote.followStrumNote(strum, fakeCrochet, songSpeed);
+							daNote.followStrumNote(strum, fakeCrochet, songSpeed / playbackRate);
 
 							if(daNote.mustPress)
 							{
