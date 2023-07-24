@@ -10,7 +10,6 @@ package states;
 // "function eventEarlyTrigger" - Used for making your event start a few MILLISECONDS earlier
 // "function triggerEvent" - Called when the song hits your event's timestamp, this is probably what you were looking for
 
-import haxe.macro.Type.AbstractType;
 import backend.Achievements;
 import backend.Highscore;
 import backend.Mods;
@@ -34,6 +33,7 @@ import lime.utils.Assets;
 import openfl.utils.Assets as OpenFlAssets;
 import openfl.events.KeyboardEvent;
 import tjson.TJSON as Json;
+import haxe.macro.Type.AbstractType;
 
 import psychlua.FunkinLua;
 
@@ -2695,7 +2695,8 @@ class PlayState extends MusicBeatState
 					var oldCallback = boyfriend.animation.finishCallback;
 					var char = boyfriend;
 					char.animation.finishCallback = function(name:String) {
-						char.dance();
+						if (char.animation.curAnim != null && char.animation.curAnim.name == anim + '-release')
+							char.dance();
 						char.animation.finishCallback = oldCallback;
 					}
 				}
@@ -2804,24 +2805,16 @@ class PlayState extends MusicBeatState
 			{
 				var hasHoldAnimation:Bool = false;
 				var isHoldAnimation:Bool = false;
-				var isReleaseAnimation:Bool = false;
 				if (char.animOffsets.exists(animToPlay + '-hold'))
 					hasHoldAnimation = true;
 				if (note.tail.length > 0 && hasHoldAnimation) {
 					animToPlay += '-hold';
 					isHoldAnimation = true;
 				}
-				if ((note.nextNote == null || (note.nextNote != null && !note.nextNote.isSustainNote)) && char.animOffsets.exists(animToPlay + '-release'))
-					isReleaseAnimation = true;
 
 				if (!(note.isSustainNote && hasHoldAnimation)) // Play unless the character should continue playing the hold animation
 					char.playAnim(animToPlay, true);
-				if (isReleaseAnimation) {
-					var anim:String = char.animation.curAnim.name;
-					if (anim.endsWith('-loop'))
-						anim = anim.substr(0, anim.length - 5);
-					char.playAnim(anim + '-release', false);
-				}
+
 				char.holdTimer = 0;
 			}
 		}
@@ -2900,24 +2893,16 @@ class PlayState extends MusicBeatState
 				{
 					var hasHoldAnimation:Bool = false;
 					var isHoldAnimation:Bool = false;
-					var isReleaseAnimation:Bool = false;
 					if (char.animOffsets.exists(animToPlay + '-hold'))
 						hasHoldAnimation = true;
 					if (note.tail.length > 0 && hasHoldAnimation) {
 						animToPlay += '-hold';
 						isHoldAnimation = true;
 					}
-					if ((note.nextNote == null || (note.nextNote != null && !note.nextNote.isSustainNote)) && char.animOffsets.exists(animToPlay + '-release'))
-						isReleaseAnimation = true;
 	
 					if (!(note.isSustainNote && hasHoldAnimation)) // Play unless the character should continue playing the hold animation
 						char.playAnim(animToPlay, true);
-					if (isReleaseAnimation) {
-						var anim:String = char.animation.curAnim.name;
-						if (anim.endsWith('-loop'))
-							anim = anim.substr(0, anim.length - 5);
-						//char.playAnim(anim + '-release', false);
-					}
+
 					char.holdTimer = 0;
 					
 					if(note.noteType == 'Hey!') {
