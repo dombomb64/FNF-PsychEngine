@@ -927,6 +927,7 @@ class ChartingState extends MusicBeatState
 			key++;
 		}
 
+		#if sys
 		var foldersToCheck:Array<String> = Mods.directoriesWithFile(Paths.getPreloadPath(), 'custom_notetypes/');
 		for (folder in foldersToCheck)
 			for (file in FileSystem.readDirectory(folder))
@@ -942,6 +943,7 @@ class ChartingState extends MusicBeatState
 					}
 				}
 			}
+		#end
 
 
 		var displayNameList:Array<String> = curNoteTypes.copy();
@@ -1710,8 +1712,8 @@ class ChartingState extends MusicBeatState
 
 
 			if (FlxG.keys.justPressed.BACKSPACE) {
+				// Protect against lost data when quickly leaving the chart editor.
 				autosaveSong();
-
 				PlayState.chartingMode = false;
 				MusicBeatState.switchState(new states.editors.MasterEditorMenu());
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
