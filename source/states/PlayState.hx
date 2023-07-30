@@ -68,6 +68,7 @@ import states.stages.objects.*;
 #if LUA_ALLOWED
 import psychlua.*;
 #else
+import psychlua.FunkinLua;
 import psychlua.LuaUtils;
 import psychlua.HScript;
 #end
@@ -98,7 +99,7 @@ class PlayState extends MusicBeatState
 	public var gfMap:Map<String, Character> = new Map<String, Character>();
 	public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
 	
-	#if (MODS_ALLOWED && SScript)
+	#if HSCRIPT_ALLOWED
 	public var hscriptArray:Array<HScript> = [];
 	#end
 
@@ -577,7 +578,7 @@ class PlayState extends MusicBeatState
 			startLuasNamed('custom_events/' + event + '.lua');
 		#end
 
-		#if (MODS_ALLOWED && SScript)
+		#if HSCRIPT_ALLOWED
 		for (notetype in noteTypes)
 			startHScriptsNamed('custom_notetypes/' + notetype + '.hx');
 
@@ -743,48 +744,64 @@ class PlayState extends MusicBeatState
 		var luaFile:String = 'characters/' + name + '.lua';
 		#if MODS_ALLOWED
 		var replacePath:String = Paths.modFolders(luaFile);
-		if(FileSystem.exists(replacePath)) {
+		if(FileSystem.exists(replacePath))
+		{
 			luaFile = replacePath;
 			doPush = true;
-		} else {
+		}
+		else
+		{
 			luaFile = Paths.getPreloadPath(luaFile);
-			if(FileSystem.exists(luaFile)) {
+			if(FileSystem.exists(luaFile))
 				doPush = true;
-			}
 		}
 		#else
 		luaFile = Paths.getPreloadPath(luaFile);
-		if(Assets.exists(luaFile)) {
-			doPush = true;
-		}
+		if(Assets.exists(luaFile)) doPush = true;
 		#end
 
 		if(doPush)
 		{
-			for (script in luaArray) if(script.scriptName == luaFile) return;
-			new FunkinLua(luaFile);
+			for (script in luaArray)
+			{
+				if(script.scriptName == luaFile)
+				{
+					doPush = false;
+					break;
+				}
+			}
+			if(doPush) new FunkinLua(luaFile);
 		}
 		#end
 
 		// HScript
-		#if (MODS_ALLOWED && SScript)
+		#if HSCRIPT_ALLOWED
 		var doPush:Bool = false;
 		var scriptFile:String = 'characters/' + name + '.hx';
-		var replacePath:String = Paths.modFolders(luaFile);
-		if(FileSystem.exists(replacePath)) {
+		var replacePath:String = Paths.modFolders(scriptFile);
+		if(FileSystem.exists(replacePath))
+		{
 			scriptFile = replacePath;
 			doPush = true;
-		} else {
+		}
+		else
+		{
 			scriptFile = Paths.getPreloadPath(scriptFile);
-			if(FileSystem.exists(scriptFile)) {
+			if(FileSystem.exists(scriptFile))
 				doPush = true;
-			}
 		}
 		
 		if(doPush)
 		{
-			for (script in hscriptArray) if(script.interpName == scriptFile) return;
-			initHScript(scriptFile);
+			for (script in hscriptArray)
+			{
+				if(script.interpName == scriptFile)
+				{
+					doPush = false;
+					break;
+				}
+			}
+			if(doPush) initHScript(scriptFile);
 		}
 		#end
 	}
@@ -2972,10 +2989,13 @@ class PlayState extends MusicBeatState
 		FunkinLua.customFunctions.clear();
 		#end
 
-		#if (MODS_ALLOWED && SScript)
+		#if HSCRIPT_ALLOWED
 		for (script in hscriptArray)
 			if(script != null)
+			{
+				script.call('onDestroy');
 				script.active = false;
+			}
 
 		hscriptArray = [];
 		#end
@@ -3106,7 +3126,7 @@ class PlayState extends MusicBeatState
 	}
 	#end
 	
-	#if (MODS_ALLOWED && SScript)
+	#if HSCRIPT_ALLOWED
 	public function startHScriptsNamed(scriptFile:String)
 	{
 		var scriptToLoad:String = Paths.modFolders(scriptFile);
@@ -3131,7 +3151,7 @@ class PlayState extends MusicBeatState
 			var newScript:HScript = new HScript(file);
 			newScript.doString(File.getContent(file));
 			hscriptArray.push(newScript);
-			if(newScript.exists('onCreate')) newScript.call('onCreate', []);
+			if(newScript.exists('onCreate')) newScript.call('onCreate');
 			trace('initialized sscript interp successfully: $file');
 		}
 		catch(e:Dynamic)
@@ -3189,7 +3209,7 @@ class PlayState extends MusicBeatState
 
 	public function callOnHScript(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		var returnVal:Dynamic = psychlua.FunkinLua.Function_Continue;
-		#if (MODS_ALLOWED && SScript)
+		#if HSCRIPT_ALLOWED
 		if(args == null) args = [];
 		if(exclusions == null) exclusions = [];
 		if(excludeValues == null) excludeValues = [psychlua.FunkinLua.Function_Continue];
@@ -3230,7 +3250,7 @@ class PlayState extends MusicBeatState
 			}
 			catch(e:Dynamic)
 			{
-				//addTextToDebug('ERROR (${script.interpName}) - ' + e.toString(), FlxColor.RED); //myValue);
+				addTextToDebug('ERROR (${script.interpName}) - ' + e.toString(), FlxColor.RED); //myValue);
 			}
 
 			if(!script.active) i++;
@@ -3259,7 +3279,7 @@ class PlayState extends MusicBeatState
 	}
 
 	public function setOnHScript(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
-		#if (MODS_ALLOWED && SScript)
+		#if HSCRIPT_ALLOWED
 		if(exclusions == null) exclusions = [];
 		for (script in hscriptArray) {
 			if(exclusions.contains(script.interpName))
