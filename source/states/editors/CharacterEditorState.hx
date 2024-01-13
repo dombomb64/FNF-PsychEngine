@@ -17,6 +17,7 @@ import openfl.events.IOErrorEvent;
 import openfl.utils.Assets;
 import lime.system.Clipboard;
 
+import backend.animation.PsychAnimationController;
 import objects.Character;
 import objects.HealthIcon;
 import objects.Bar;
@@ -516,7 +517,7 @@ class CharacterEditorState extends MusicBeatState
 			animationIndicesInputText.text = indicesStr.substr(1, indicesStr.length - 2);
 		});
 
-		var addUpdateButton:FlxButton = new FlxButton(animationImageInputText.x + 157, animationImageInputText.y - 3, "Add/Update", function() {
+		var addUpdateButton:FlxButton = new FlxButton(animationImageInputText.x + animationImageInputText.width + 7, animationImageInputText.y - 3, "Add/Update", function() {
 			var indices:Array<Int> = [];
 			var indicesStr:Array<String> = animationIndicesInputText.text.trim().split(',');
 			if(indicesStr.length > 1) {
@@ -546,27 +547,26 @@ class CharacterEditorState extends MusicBeatState
 			addedAnim.loop = animationLoopCheckBox.checked;
 			addedAnim.indices = indices;
 			addedAnim.offsets = lastOffsets;
+			
+			if (!character.isAnimateAtlas) {
+				var animImage = addedAnim.image;
+				if (animImage == null || animImage.length == 0) {
+					animImage = character.imageFile;
+				}
+				if (animImage != null && animImage != character.curImage) {
+					// Set stuff in the character
+					character.framesList.set(animImage, Paths.getAtlas(animImage));
+					character.animStates.set(animImage, new PsychAnimationController(character));
+					character.imageNames.set(addedAnim.anim, addedAnim.image); // animImage changes if it's blank, so we use addedAnim.image
 
-			var animImage = newAnim.image;
-			if (animImage == null || animImage.length == 0) {
-				animImage = char.imageFile;
-			}
-			if (animImage != null && animImage != char.curImage) {
-				// Set stuff in the character
-				if (!char.isAnimateAtlas)
-					char.framesList.set(animImage, Paths.getAtlas(animImage));
-				else
-					char.framesList.set(animImage, AtlasFrameMaker.construct(animImage));
-				char.animStates.set(animImage, new flixel.animation.FlxAnimationController(char));
-				char.imageNames.set(newAnim.anim, newAnim.image); // animImage changes if it's blank, so we use newAnim.image
-
-				// Get it back out
-				char.animation = Character.tempAnimState;
-				char.frames = char.framesList.get(animImage);
-				char.animation = char.animStates.get(animImage);
-				char.curImage = animImage;
-				curAnim = char.animationsArray.indexOf(newAnim);
-				reloadCharacterImage();
+					// Get it back out
+					character.animation = Character.tempAnimState;
+					character.frames = character.framesList.get(animImage);
+					character.animation = character.animStates.get(animImage);
+					character.curImage = animImage;
+					curAnim = character.animationsArray.indexOf(addedAnim);
+					reloadCharacterImage();
+				}
 			}
 
 			addAnimation(addedAnim.anim, addedAnim.name, addedAnim.fps, addedAnim.loop, addedAnim.indices, addedAnim.image);
@@ -578,7 +578,7 @@ class CharacterEditorState extends MusicBeatState
 			trace('Added/Updated animation: ' + animationInputText.text);
 		});
 
-		var removeButton:FlxButton = new FlxButton(180, animationIndicesInputText.y + 60, "Remove", function() {
+		var removeButton:FlxButton = new FlxButton(addUpdateButton.x + addUpdateButton.width + 7, addUpdateButton.y, "Remove", function() {
 			for (anim in character.animationsArray)
 				if(animationInputText.text == anim.anim)
 				{
@@ -607,7 +607,7 @@ class CharacterEditorState extends MusicBeatState
 
 		tab_group.add(new FlxText(animationDropDown.x, animationDropDown.y - 18, 0, 'Animations:'));
 		tab_group.add(new FlxText(animationInputText.x, animationInputText.y - 18, 0, 'Animation Name:'));
-		tab_group.add(new FlxText(animationNameFramerate.x, animationNameFramerate.y - 18, 0, 'Framerate:'));
+		tab_group.add(new FlxText(animationFramerate.x, animationFramerate.y - 18, 0, 'Framerate:'));
 		tab_group.add(new FlxText(animationNameInputText.x, animationNameInputText.y - 18, 0, 'Animation Symbol Name/Tag:'));
 		tab_group.add(new FlxText(animationIndicesInputText.x, animationIndicesInputText.y - 18, 0, 'ADVANCED - Animation Indices:'));
 		tab_group.add(new FlxText(animationImageInputText.x, animationImageInputText.y - 18, 0, 'ADVANCED - Separate Image:'));
@@ -1196,15 +1196,16 @@ class CharacterEditorState extends MusicBeatState
 	{
 		if(!character.isAnimateAtlas)
 		{
-			if (image == null || image.length == 0) {
-				image = imageFile;
+			var img = image;
+			if (img == null || img.length == 0) {
+				img = character.imageFile;
 			}
-			if (image != curImage) {
+			if (img != character.curImage) {
 				//trace(image + ', ' + curImage);
-				animation = tempAnimState;
-				frames = framesList.get(image);
-				animation = animStates.get(image);
-				curImage = image;
+				character.animation = Character.tempAnimState;
+				character.frames = character.framesList.get(img);
+				character.animation = character.animStates.get(img);
+				character.curImage = image;
 			}
 
 			if(indices != null && indices.length > 0)
@@ -1226,6 +1227,9 @@ class CharacterEditorState extends MusicBeatState
 
 	inline function newAnim(anim:String, name:String, image:String = ''):AnimArray
 	{
+		var img = image;
+		if (img == null)
+			img = '';
 		return {
 			offsets: [0, 0],
 			loop: false,
@@ -1233,7 +1237,7 @@ class CharacterEditorState extends MusicBeatState
 			anim: anim,
 			indices: [],
 			name: name,
-			image: image
+			image: img
 		};
 	}
 

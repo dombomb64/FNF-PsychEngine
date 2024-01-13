@@ -1,7 +1,12 @@
 package objects;
 
 import backend.animation.PsychAnimationController;
+import backend.Section;
+import backend.Song;
+import states.stages.objects.TankmenBG;
 
+import flixel.animation.FlxAnimationController;
+import flixel.graphics.frames.FlxFramesCollection;
 import flixel.util.FlxSort;
 import flixel.util.FlxDestroyUtil;
 
@@ -92,6 +97,8 @@ class Character extends FlxSprite
 	{
 		super(x, y);
 
+		if (tempAnimState == null) tempAnimState = new PsychAnimationController(this);
+
 		animation = new PsychAnimationController(this);
 
 		animOffsets = new Map<String, Array<Dynamic>>();
@@ -111,7 +118,7 @@ class Character extends FlxSprite
 				if (!Assets.exists(path))
 				#end
 				{
-					path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+					path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); // If a character couldn't be found, change him to BF just to prevent a crash
 					color = FlxColor.BLACK;
 					alpha = 0.6;
 				}
@@ -161,15 +168,17 @@ class Character extends FlxSprite
 			curImage = json.image;
 			framesList.set(json.image, frames);
 			animStates.set(json.image, animation);
-			for (anim in json.animations) {
+			for (i in 0...json.animations.length) {
+				var anim = json.animations[i];
 				if (anim.image != null && anim.image.length > 0 && !framesList.exists(anim.image)) {
 					framesList.set(anim.image, Paths.getAtlas(anim.image));
-					animStates.set(anim.image, new FlxAnimationController(this));
+					animStates.set(anim.image, new PsychAnimationController(this));
 				}
 				else if (anim.image == null)
 					anim.image = '';
 				imageNames.set(anim.anim, anim.image);
 			}
+			//trace(framesList + '\n' + animStates + '\n' + imageNames + '\n');
 		}
 		#if flxanimate
 		else
@@ -255,7 +264,8 @@ class Character extends FlxSprite
 				else addOffset(anim.anim, 0, 0);
 			}
 		}
-		if (!isAnimateAtlas) {
+		if (!isAnimateAtlas)
+		{
 			animation = tempAnimState;
 			frames = framesList.get(json.image);
 			animation = animStates.get(json.image);

@@ -3156,8 +3156,8 @@ class PlayState extends MusicBeatState
 
 	public function playerDance():Void
 	{
+		var anim:String = boyfriend.animation.curAnim.name;
 		if (boyfriend.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * boyfriend.singDuration && anim.startsWith('sing') && !anim.endsWith('miss')) {
-			var anim:String = boyfriend.animation.curAnim.name;
 			if (anim.endsWith('-loop'))
 				anim = anim.substr(0, anim.length - 5);
 
